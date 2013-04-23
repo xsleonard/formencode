@@ -203,10 +203,12 @@ class Schema(FancyValidator):
                     validator = pending.pop(name, None)
                     if validator is None:
                         continue
-                    self._validate_item(name, validator, value, state, errors)
+                    self._validate_item(name, validator, value, state, new,
+                                        errors)
 
                 for name, validator in pending.items():
-                    self._validate_item(name, validator, value, state, errors)
+                    self._validate_item(name, validator, value, state, new,
+                                        errors)
 
             if state is not None:
                 state.key = previous_key
@@ -238,7 +240,7 @@ class Schema(FancyValidator):
                 state.key = previous_key
                 state.full_dict = previous_full_dict
 
-    def _validate_item(self, name, validator, value, state, errors):
+    def _validate_item(self, name, validator, value, state, new, errors):
         if state is not None:
             state.key = name
         try:
