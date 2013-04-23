@@ -163,7 +163,7 @@ class Schema(FancyValidator):
                     errors[name] = Invalid(self.message(
                         'singleValueExpected', state), value_dict, state)
                 else:
-                    pending[name] = validator
+                    pending[name] = (validator, value)
 
                 #if state is not None:
                     #state.key = name
@@ -188,7 +188,7 @@ class Schema(FancyValidator):
                             message = self.message('missingValue', state)
                         errors[name] = Invalid(message, None, state)
                     else:
-                        pending[name] = validator
+                        pending[name] = (validator, value)
                         #if state is not None:
                             #state.key = name
                         #try:
@@ -200,12 +200,12 @@ class Schema(FancyValidator):
                     new[name] = validator.if_missing
 
             for name in self.order:
-                validator = pending.pop(name, None)
+                (validator, value) = pending.pop(name, None)
                 if validator is None:
                     continue
                 self._validate_item(name, validator, value, state, new, errors)
 
-            for name, validator in pending.items():
+            for name, (validator, value) in pending.items():
                 self._validate_item(name, validator, value, state, new, errors)
 
             if state is not None:
