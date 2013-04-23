@@ -139,6 +139,7 @@ class Schema(FancyValidator):
         new = {}
         errors = {}
         unused = self.fields.keys()
+        pending = []
         if state is not None:
             previous_key = getattr(state, 'key', None)
             previous_full_dict = getattr(state, 'full_dict', None)
@@ -161,13 +162,15 @@ class Schema(FancyValidator):
                         validator, 'accept_iterator', False):
                     errors[name] = Invalid(self.message(
                         'singleValueExpected', state), value_dict, state)
+                else:
+                    pending[name] = validator
 
-                if state is not None:
-                    state.key = name
-                try:
-                    new[name] = validator.to_python(value, state)
-                except Invalid as e:
-                    errors[name] = e
+                #if state is not None:
+                    #state.key = name
+                #try:
+                    #new[name] = validator.to_python(value, state)
+                #except Invalid as e:
+                    #errors[name] = e
 
             for name in unused:
                 validator = self.fields[name]
@@ -185,15 +188,25 @@ class Schema(FancyValidator):
                             message = self.message('missingValue', state)
                         errors[name] = Invalid(message, None, state)
                     else:
-                        if state is not None:
-                            state.key = name
-                        try:
-                            new[name] = validator.to_python(
-                                self.if_key_missing, state)
-                        except Invalid as e:
-                            errors[name] = e
+                        pending[name] = validator
+                        #if state is not None:
+                            #state.key = name
+                        #try:
+                            #new[name] = validator.to_python(
+                                #self.if_key_missing, state)
+                        #except Invalid as e:
+                            #errors[name] = e
                 else:
                     new[name] = validator.if_missing
+
+                for name in self.order:
+                    validator = pending.pop(name, None)
+                    if validator is None:
+                        continue
+                    self._validate_item(name, validator, value, state, errors)
+
+                for name, validator in pending.items():
+                    self._validate_item(name, validator, value, state, errors)
 
             if state is not None:
                 state.key = previous_key
@@ -224,6 +237,14 @@ class Schema(FancyValidator):
             if state is not None:
                 state.key = previous_key
                 state.full_dict = previous_full_dict
+
+    def _validate_item(self, name, validator, value, state, errors):
+        if state is not None:
+            state.key = name
+        try:
+            new[name] = validator.to_python(value, state)
+        except Invalid as e:
+            errors[name] = e
 
     def _convert_from_python(self, value_dict, state):
         chained = self.chained_validators[:]
