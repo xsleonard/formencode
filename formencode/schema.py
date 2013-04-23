@@ -139,7 +139,7 @@ class Schema(FancyValidator):
         new = {}
         errors = {}
         unused = self.fields.keys()
-        pending = []
+        pending = {}
         if state is not None:
             previous_key = getattr(state, 'key', None)
             previous_full_dict = getattr(state, 'full_dict', None)
