@@ -199,16 +199,14 @@ class Schema(FancyValidator):
                 else:
                     new[name] = validator.if_missing
 
-                for name in self.order:
-                    validator = pending.pop(name, None)
-                    if validator is None:
-                        continue
-                    self._validate_item(name, validator, value, state, new,
-                                        errors)
+            for name in self.order:
+                validator = pending.pop(name, None)
+                if validator is None:
+                    continue
+                self._validate_item(name, validator, value, state, new, errors)
 
-                for name, validator in pending.items():
-                    self._validate_item(name, validator, value, state, new,
-                                        errors)
+            for name, validator in pending.items():
+                self._validate_item(name, validator, value, state, new, errors)
 
             if state is not None:
                 state.key = previous_key
