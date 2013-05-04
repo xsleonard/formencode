@@ -188,7 +188,7 @@ class Schema(FancyValidator):
                             message = self.message('missingValue', state)
                         errors[name] = Invalid(message, None, state)
                     else:
-                        pending[name] = (validator, value)
+                        pending[name] = (validator, self.if_key_missing)
                         #if state is not None:
                             #state.key = name
                         #try:
